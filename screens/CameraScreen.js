@@ -22,8 +22,6 @@ const CameraScreen = () => {
     const [showModal, setShowModal] = useState(false);
     const cameraRef = useRef(null);
 
-    // const authToken = '34bf0d30fafbaf07ac836f7e5bce6a08b3ea09cf';
-
     useEffect(() => {
         requestPermission();
     }, []);
@@ -39,13 +37,11 @@ const CameraScreen = () => {
         setFlash(current => (current === 'off' ? 'on' : 'off'));
     };
 
-    // Function to get the stored token
     const getAuthToken = async () => {
         try {
         const token = await AsyncStorage.getItem('authToken');
         return token;
         } catch (error) {
-        // console.error('Error fetching auth token:', error);
         }
     };
 
@@ -84,7 +80,6 @@ const CameraScreen = () => {
                 }
             );
             setIsLoading(false);
-            // console.log(response.body)
             const data = JSON.parse(response.body);
         
             if (response.status === 200) {
@@ -99,7 +94,6 @@ const CameraScreen = () => {
             }
         } catch (error) {
             setIsLoading(false);
-            // console.error("Failed to process image:", error);
             setMessage('Error processing image: ' + error.message);
             setShowModal(true);
             setTimeout(() => {
@@ -137,7 +131,6 @@ const CameraScreen = () => {
                 }
             );
     
-            // console.log(response);
             const jsonResponse = JSON.parse(response.body);
             const imageUrl = jsonResponse.url;
     
@@ -169,7 +162,6 @@ const CameraScreen = () => {
             setPreviewVisible(false);
         } catch (error) {
             setIsLoading(false);
-            // console.error("Failed to process image:", error);
             setMessage('Error processing image: ' + error.message);
             setShowModal(true);
             setTimeout(() => {
@@ -186,13 +178,10 @@ const CameraScreen = () => {
             quality: 1,
         });
 
-        // console.log(result);
-
         if (!result.cancelled) {
             const imageUri = result.assets[0].uri;
             verify(imageUri);
         } else {
-            // console.error("Image picking was cancelled or no image was selected.");
         }
     };
 
@@ -289,7 +278,7 @@ const styles = StyleSheet.create({
         width: '100%',
         padding: 20,
         justifyContent: 'space-around',
-        backgroundColor: 'rgba(0,0,0,0.5)',  // semi-transparent background
+        backgroundColor: 'rgba(0,0,0,0.5)',
     },
     previewContainer: {
         flex: 1,
@@ -324,7 +313,7 @@ const styles = StyleSheet.create({
         margin: 20,
         backgroundColor: 'grey',
         borderRadius: 5,
-        padding: 10,              // Reduced padding
+        padding: 10,              
         paddingHorizontal: 20,
         alignItems: 'center',
         shadowColor: '#000',

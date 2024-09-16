@@ -7,8 +7,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const ProfileScreen = () => {
   const [username, setUsername] = useState(null);
   const [loading, setLoading] = useState(true);
-  const navigation = useNavigation(); // Use navigation inside the component
-  const { setIsAuthenticated } = useContext(AuthContext); // Use AuthContext
+  const navigation = useNavigation(); 
+  const { setIsAuthenticated } = useContext(AuthContext); 
 
   useEffect(() => {
     const fetchUsername = async () => {
@@ -16,7 +16,6 @@ const ProfileScreen = () => {
         const storedUsername = await AsyncStorage.getItem('username');
         setUsername(storedUsername);
       } catch (error) {
-        // console.error('Failed to fetch username from AsyncStorage:', error);
       } finally {
         setLoading(false);
       }
@@ -28,7 +27,6 @@ const ProfileScreen = () => {
   const handleSignOut = async () => {
     await AsyncStorage.removeItem('authToken'); // Remove the token on logout
     setIsAuthenticated(false);
-    // navigation.replace('Login'); // Navigate to Login screen after logout
   };
 
   if (loading) {

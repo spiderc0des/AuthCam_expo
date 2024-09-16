@@ -21,7 +21,6 @@ export const loginUser = async (username, password) => {
         });
         return response.data;
     } catch (error) {
-        // console.error('Login failed:', error);
         throw error;
     }
 };
@@ -38,7 +37,6 @@ export const registerUser = async (username, password) => {
         const errorMessage = Object.entries(error.response?.data || {})
             .map(([key, value]) => `${value.join(' ')}`)
             .join(' ');
-        // console.error('Registration Failed:', errorMessage);
         throw new Error(errorMessage);
     }
 };
@@ -50,10 +48,8 @@ export const getUser = async (token) => {
         'Authorization': `Token ${token}`
       }
     });
-    // console.log("Response from getUser:", response.data);
     return response.data.username;  
   } catch (error) {
-    // console.error("Failed to fetch user:", error.response?.data || error.message);
     throw error; 
   }
 };
@@ -81,14 +77,12 @@ const LoginScreen = () => {
                 await AsyncStorage.setItem('authToken', data.key);
                 try {
                     const username = await getUser(data.key);
-                    // console.log("Logged in user:", username);
                     await AsyncStorage.setItem('username', username);
                 } catch (getUserError) {
-                    // console.error("Error getting user details:", getUserError);
+                    
                 }
                 setTimeout(() => {
                     setShowModal(false);
-                    // navigation.navigate('Camera');
                 }, 2000);
             } else {
                 throw new Error('Login Failed! Incorrect Username or Password');
@@ -260,12 +254,12 @@ const styles = StyleSheet.create({
     },
     logoContainer: {
       marginBottom: 20,
-      alignItems: 'center',  // Center the logo container
+      alignItems: 'center', 
     },
     logo: {
-      width: 150,  // Set the width of the logo
-      height: 150,  // Set the height of the logo
-      resizeMode: 'contain',  // Ensure the aspect ratio is maintained
+      width: 150,  
+      height: 150,  
+      resizeMode: 'contain',  
     },
     loadingContainer: {
         position: 'absolute',
