@@ -18,10 +18,29 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.spidercodes.AuthCam"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "plugins": [
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Select and upload images",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access camera"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "9990d988-0c6d-4e4e-8f9d-5d66d153dd5a"
+      }
+    },
+    "owner": "spidercodes"
   }
 }

@@ -1,0 +1,499 @@
+import { useNavigation } from '@react-navigation/core'
+import React from 'react'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+
+const ProfileScreen = () => {
+  const navigation = useNavigation()
+  const { setIsAuthenticated } = useContext(AuthContext);
+  const username = AsyncStorage.getItem('authToken');
+
+  const handleSignOut = async() => {
+      await AsyncStorage.removeItem('authToken'); // Remove the token on logout
+      setIsAuthenticated(false);
+      navigation.navigate('Login'); // Navigate to Login screen after logout
+    };
+    navigation.navigate("Login");
+
+  return (
+    <View style={styles.container}>
+      {/* <Text>Username: {username}</Text> */}
+      <TouchableOpacity
+        onPress={handleSignOut}
+        style={styles.button}
+      >
+        <Text style={styles.buttonText}>Sign out</Text>
+      </TouchableOpacity>
+    </View>
+  )
+}
+
+export default ProfileScreen
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+   button: {
+    backgroundColor: '#0782F9',
+    width: '60%',
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center',
+    marginTop: 40,
+  },
+  buttonText: {
+    color: 'white',
+    fontWeight: '700',
+    fontSize: 16,
+  },
+})
+
+
+
+
+
+
+  // const LoginScreen = () => {
+  //   const [username, setUsername] = useState('');
+  //   const [password, setPassword] = useState('');
+  //   const [isLoading, setIsLoading] = useState(false);
+  //   const [showModal, setShowModal] = useState(false);
+  //   const [modalMessage, setModalMessage] = useState('');
+  //   const navigation = useNavigation();
+  //   const { setIsAuthenticated } = useContext(AuthContext);
+
+  //   const handleLogin = async () => {
+    
+  //     setIsLoading(true);
+  //   try {
+  //     const data = await loginUser(username, password);
+  //     if (data?.key) {
+  //       setModalMessage('Login Successful!');
+  //       setShowModal(true);
+  //       setIsAuthenticated(true);
+  //       // Store the token
+  //       await AsyncStorage.setItem('authToken', data.key);
+
+  //       // Fetch username using the token
+  //       try {
+  //         const username = await getUser(data.key);
+  //         console.log("Logged in user:", username);
+  //         // Optional: Store the username
+  //         await AsyncStorage.setItem('username', username);
+  //       } catch (getUserError) {
+  //         console.error("Error getting user details:", getUserError);
+  //       }
+        
+  //       navigation.navigate('Camera'); 
+  //       // Navigate after success
+  //       setTimeout(() => {
+  //           setShowModal(false);
+  //       }, 2000);
+  //     } else {
+  //       throw new Error('Login Failed! Incorrect Username or Password');
+  //     }
+  //   } catch (error) {
+  //     setModalMessage(error.toString());
+  //     setShowModal(true);
+  //     setTimeout(() => {
+  //         setShowModal(false);
+  //       }, 5000);
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   };
+        
+  
+  
+    // const handleSignUp = async () => {
+    //   setIsLoading(true);
+    //   try {
+    //     const data = await registerUser(username, password);
+    //     setModalMessage('Registration successful!');
+    //     setShowModal(true);
+    //     setTimeout(() => {
+    //         setShowModal(false);
+    //       }, 5000);
+    //   } catch (error) {
+    //     setModalMessage(error.toString());
+    //     setShowModal(true);
+    //     setTimeout(() => {
+    //         setShowModal(false);
+    //       }, 5000);
+    //   } finally {
+    //     setIsLoading(false);
+    //   }
+    // };
+
+
+
+
+
+
+
+
+
+
+import { useNavigation } from '@react-navigation/core'
+import React, { useContext, useEffect, useState } from 'react'
+import { ActivityIndicator, KeyboardAvoidingView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image, Modal} from 'react-native';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import AuthContext from '../AuthContext'
+
+
+
+const api = axios.create({
+    baseURL: 'https://spidercodes.pythonanywhere.com',
+  });
+
+
+  export const loginUser = async (username, password) => {
+    try {
+      // Create an instance of FormData
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('password', password);
+  
+      // Make the request with formData
+      const response = await api.post('/dj-rest-auth/login/', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data', // Ensure the backend supports this content-type
+        },
+      });
+      
+      return response.data;
+    } catch (error) {
+    }
+  };
+  
+  export const registerUser = async (username, password) => {
+    try {
+      const response = await api.post('/register/', {
+        username,
+        password1: password,
+        password2: password 
+      });
+      return response.data;
+    } catch (error) {
+        const errorMessage = Object.entries(error.response?.data || {})
+        .map(([key, value]) => `${value.join(' ')}`) // Combine all array messages into a single string
+        .join(' ');
+        console.error('Registration Failed:', errorMessage)
+      throw errorMessage;
+    }
+  };
+
+
+  export const getUser = async (token) => {
+    try {
+      const response = await api.get('/dj-rest-auth/user/', {
+        headers: {
+          'Authorization': `Token ${token}`
+        }
+      });
+      // console.log("Response from getUser:", response.data);
+      return response.data.username;  
+    } catch (error) {
+      console.error("Failed to fetch user:", error.response?.data || error.message);
+      throw error; 
+    }
+  };
+
+
+  
+
+  
+  const LoginScreen = () => {
+
+    const navigation = useNavigation();
+    const { setIsAuthenticated } = useContext(AuthContext);
+    const [isLogin, setIsLogin] = useState(true); // State to toggle between login and registration
+    const [username, setUsername] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState(''); // State for confirm password in registration
+    const [isLoading, setIsLoading] = useState(false);
+    const [showModal, setShowModal] = useState(false);
+    const [modalMessage, setModalMessage] = useState('');
+  
+    const handleLogin = async () => {
+  
+      setIsLoading(true);
+      try {
+        const data = await loginUser(username, password);
+        if (data?.key) {
+          setModalMessage('Login Successful!');
+          setShowModal(true);
+          setIsAuthenticated(true);
+          // Store the token
+          await AsyncStorage.setItem('authToken', data.key);
+  
+          // Fetch username using the token
+          try {
+            const username = await getUser(data.key);
+            console.log("Logged in user:", username);
+            // Optional: Store the username
+            await AsyncStorage.setItem('username', username);
+          } catch (getUserError) {
+            console.error("Error getting user details:", getUserError);
+          }
+          
+          navigation.navigate('Camera'); 
+          // Navigate after success
+          setTimeout(() => {
+              setShowModal(false);
+          }, 2000);
+        } else {
+          throw new Error('Login Failed! Incorrect Username or Password');
+        }
+      } catch (error) {
+        setModalMessage(error.toString());
+        setShowModal(true);
+        setTimeout(() => {
+            setShowModal(false);
+          }, 5000);
+        } finally {
+          setIsLoading(false);
+        }
+    };
+  
+    const handleSignUp = async () => {
+      setIsLoading(true);
+      if (password !== confirmPassword) {
+        setModalMessage('Passwords do not match!');
+        setShowModal(true);
+        setTimeout(() => setShowModal(false), 3000);
+      } else {
+        // Add registration logic here
+      setIsLoading(true);
+      try {
+        const data = await registerUser(username, password);
+        setModalMessage('Registration successful!');
+        setShowModal(true);
+        setTimeout(() => {
+            setShowModal(false);
+          }, 5000);
+      } catch (error) {
+        setModalMessage(error.toString());
+        setShowModal(true);
+        setTimeout(() => {
+            setShowModal(false);
+          }, 5000);
+      } finally {
+        setIsLoading(false);
+    };
+  
+    const toggleMode = () => {
+      setIsLogin(!isLogin);
+      setModalMessage('');
+    };
+}
+  return (
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
+      <View style={styles.logoContainer}>
+        <Text style={styles.logo}>AuthCam</Text>
+      </View>
+      <View style={styles.inputContainer}>
+        <TextInput
+          placeholder="Username"
+          value={username}
+          onChangeText={setUsername}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Password"
+          value={password}
+          onChangeText={setPassword}
+          style={styles.input}
+          secureTextEntry
+        />
+        {!isLogin && (
+          <TextInput
+            placeholder="Confirm Password"
+            value={confirmPassword}
+            onChangeText={setConfirmPassword}
+            style={styles.input}
+            secureTextEntry
+          />
+        )}
+      </View>
+
+      {isLogin ? (
+        <TouchableOpacity onPress={handleLogin} style={styles.button}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity onPress={handleSignUp} style={styles.button}>
+          <Text style={styles.buttonText}>Register</Text>
+        </TouchableOpacity>
+      )}
+
+      <TouchableOpacity onPress={toggleMode} style={styles.textButton}>
+        <Text style={styles.text}>{isLogin ? 'Register' : 'Back to Login'}</Text>
+      </TouchableOpacity>
+
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#0000ff" />
+        </View>
+      )}
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showModal}
+        onRequestClose={() => setShowModal(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalText}>{modalMessage}</Text>
+          </View>
+        </View>
+      </Modal>
+    </KeyboardAvoidingView>
+    );
+  };
+  
+  const styles = StyleSheet.create({
+    container: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    inputContainer: {
+      width: '80%',
+    },
+    input: {
+      backgroundColor: 'white',
+      paddingHorizontal: 15,
+      paddingVertical: 10,
+      borderRadius: 10,
+      marginTop: 5,
+    },
+    buttonContainer: {
+      width: '60%',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 40,
+    },
+    button: {
+      backgroundColor: '#0782F9',
+      width: '100%',
+      padding: 15,
+      borderRadius: 10,
+      alignItems: 'center',
+    },
+    buttonText: {
+      color: 'white',
+      fontWeight: '700',
+      fontSize: 16,
+    },
+    textButton: {
+      marginTop: 15,
+    },
+    text: {
+      color: '#0782F9',
+      fontWeight: '700',
+    },
+    logoContainer: {
+      marginBottom: 20,
+      alignItems: 'center',
+    },
+    logo: {
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+    loadingContainer: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: 0,
+      bottom: 0,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    },
+    centeredView: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginTop: 22,
+      backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    },
+    modalView: {
+      margin: 20,
+      backgroundColor: 'grey',
+      borderRadius: 20,
+      padding: 10,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: {
+        width: 0,
+        height: 2,
+      },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5,
+      maxWidth: '80%',
+    },
+    modalText: {
+      textAlign: 'center',
+      color: 'white',
+    },
+  });
+  }
+export default LoginScreen; 
+
+
+
+   <View style={styles.logoContainer}>
+      <Image source={require('../assets/login_image.png')} style={styles.logo} />
+    </View>
+
+
+        logoContainer: {
+      marginBottom: 20,
+      alignItems: 'center',
+    },
+    logo: {
+      fontSize: 24,
+      fontWeight: 'bold',
+    },
+
+
+
+
+
+    return (
+    <KeyboardAvoidingView style={styles.container} behavior="padding">
+    <View style={styles.logoContainer}>
+      <Image source={require('../assets/login_image.png')} style={styles.logo} />
+    </View>
+    <View style={styles.inputContainer}>
+      <TextInput
+        placeholder="Username"
+        value={username}
+        onChangeText={text => setUsername(text)}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Password"
+        value={password}
+        onChangeText={text => setPassword(text)}
+        style={styles.input}
+        secureTextEntry
+      />
+    </View>
+
+    <View style={styles.buttonContainer}>
+      <TouchableOpacity onPress={handleLogin} style={styles.button}>
+        <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleSignUp} style={[styles.button, styles.buttonOutline]}>
+        <Text style={styles.buttonOutlineText}>Register</Text>
+      </TouchableOpacity>
+    </View>
